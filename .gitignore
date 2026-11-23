@@ -1,0 +1,37 @@
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editoren
+.vscode/
+.idea/
+*.swp
+*.tmp
+*.bak
+
+# Temporäre Dateien
+*.log
+*.cache
+~$*
+
+# Zugangsdaten
+.env
+.env.*
+*.key
+*.pem
+*.pfx
+*.p12
+
+# Virtuelle Maschinen
+*.vhd
+*.vhdx
+*.avhdx
+*.vmcx
+*.vmrs
+
+# Installationsmedien
+*.iso
+*.img
+*.wim
+*.esd
