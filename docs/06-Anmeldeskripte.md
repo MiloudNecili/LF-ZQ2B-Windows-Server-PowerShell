@@ -1,25 +1,56 @@
-# Anmeldeskripte
+# Anmeldeskripte und GPO-Filterung
 
-## Konfiguration
+## 1. Anmeldeskripte einrichten
 
-- `HalloUser.vbs` und `Hallo.ps1` auf `DC` erstellt.
-- GPO `Anmeldeskript` erstellt und mit OU `Arbeit` verknüpft.
-- VBScript unter `Benutzerkonfiguration > Richtlinien > Windows-Einstellungen > Skripts > Anmelden` hinzugefügt.
-- PowerShell-Skript unter `PowerShell-Skripts` hinzugefügt.
-- Beide Dateien im GPO-Verzeichnis `User\Scripts\Logon` innerhalb von `SYSVOL` abgelegt.
+- Auf `DC` die Skripte `HalloUser.vbs` und `Hallo.ps1` erstellt.
+- GPO `Anmeldeskript` angelegt und mit `gfnlab.test` verknüpft.
+- VBScript unter **Benutzerkonfiguration > Richtlinien > Windows-Einstellungen > Skripts > Anmelden** eingetragen; PowerShell-Skript auf der Registerkarte **PowerShell-Skripts**.
+- Beide Dateien unter `SYSVOL` im GPO-Verzeichnis `User\Scripts\Logon` abgelegt.
+- Anmeldung mit `GFNLAB\kk` auf `W11`: Beide Begrüßungsfenster erschienen.
 
-## Fehlerbehebung
+## 2. Fehlerbehebung
 
-- GPO auf `W11` für `GFNLAB\kk` angewendet, aber zunächst keine Meldungen angezeigt.
-- Ursache: `scripts.ini` und `psscripts.ini` verwiesen auf lokale Dateien unter `C:\Users\Administrator\Documents`.
-- Sicherungskopien der INI-Dateien erstellt und die Einträge auf `HalloUser.vbs` bzw. `Hallo.ps1` korrigiert.
-- Zeichencodierung von `HalloUser.vbs` für Windows Script Host angepasst.
+- Obwohl die GPO angewendet wurde, erschienen zunächst keine Meldungen.
+- Ursache: `scripts.ini` und `psscripts.ini` enthielten lokale Pfade unter `C:\Users\Administrator\Documents`.
+- INI-Dateien gesichert und `0CmdLine` auf `HalloUser.vbs` bzw. `Hallo.ps1` korrigiert.
+- Zeichencodierung des VBScript für Windows Script Host angepasst.
+- Nach erneuter Anmeldung funktionierten beide Skripte mit korrekt dargestellten Sonderzeichen.
+
+![Anmeldeskripte auf W11](../images/05-anmeldeskripte-erfolgreich.png)
+
+## 3. Vererbungsblockierung und Erzwingen
+
+- Vererbung auf OU `Arbeit` blockiert; `Anmeldeskript` wurde für Karl Klammer nicht mehr angewendet.
+- Anmeldung von Donna Wetter (`dw`) auf `W11` und `Server1`: Beide Skripte wurden ausgeführt.
+- Domänenverknüpfung von `Anmeldeskript` auf **Erzwungen** gesetzt.
+- `gpresult /r` bestätigte die erneute Anwendung bei `GFNLAB\kk` trotz Vererbungsblockierung.
+- Anschließend Vererbungsblockierung und Erzwingen wieder aufgehoben.
+
+![Anmeldeskript bei Donna Wetter](../images/06-anmeldeskript-donna.png)
+
+![Anmeldeskript auf Server1](../images/06-anmeldeskript-server1.png)
+
+![Vererbungsblockierung bei Karl Klammer](../images/06-vererbungsblockierung-karl.png)
+
+## 4. WMI-Filter
+
+- WMI-Filter `Nur Clients` erstellt und mit GPO `Anmeldeskript` verknüpft.
+- Namespace: `root\CIMv2`
+
+```sql
+SELECT * FROM Win32_OperatingSystem WHERE ProductType = 1
+```
+
+- Ergebnis: Skripte auf `W11` ausgeführt, auf `Server1` nicht ausgeführt.
+
+## 5. Sicherheitsfilterung
+
+- In **Delegierung > Erweitert** für `Domänen-Admins` die Berechtigung **Gruppenrichtlinie übernehmen** auf **Verweigern** gesetzt.
+- Auf `W11` wurde die GPO für `GFNLAB\dw` mit `gpresult /r` als **Verweigert (Sicherheit)** ausgewiesen.
+- Ein erneuter Test mit `GFNLAB\kk` nach der Sicherheitsfilterung ist nicht dokumentiert.
+
+![Sicherheitsfilterung bei Donna Wetter](../images/06-sicherheitsfilterung-donna.png)
 
 ## Ergebnis
 
-Nach `gpupdate /force` und erneuter Anmeldung auf `W11` wurden beide Anmeldeskripte ausgeführt:
-
-- `Hallo.ps1`: Meldungsfenster `Logon Info` mit Benutzername und Uhrzeit.
-- `HalloUser.vbs`: Begrüßungsfenster mit Benutzername und Uhrzeit; Sonderzeichen korrekt dargestellt.
-
-![Anmeldeskripte erfolgreich ausgeführt](../images/05-anmeldeskripte-erfolgreich.png)
+Anmeldeskripte, GPO-Vererbung, erzwungene Verknüpfung, WMI-Filter und Sicherheitsfilterung konfiguriert und die dokumentierten Ergebnisse geprüft.
