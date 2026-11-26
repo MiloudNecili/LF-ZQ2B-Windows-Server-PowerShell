@@ -30,8 +30,6 @@
 
 ![Anmeldeskript auf Server1](../images/06-anmeldeskript-server1.png)
 
-![Vererbungsblockierung bei Karl Klammer](../images/06-vererbungsblockierung-karl.png)
-
 ## 4. WMI-Filter
 
 - WMI-Filter `Nur Clients` erstellt und mit GPO `Anmeldeskript` verknüpft.
